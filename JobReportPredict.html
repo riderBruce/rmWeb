@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        {% load static %}
+        {% load customTags %}
+        <link
+            rel="stylesheet"
+            type="text/css"
+            href="{% static 'JobReport/common.css' %}"
+        />
+        <title>EASY 작업일보 현황</title>
+        <style></style>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script text/javascript>
+            
+            function nvl(str, defaultStr){
+                if(typeof str == "undefined" || str == null || str == "")
+                    str = defaultStr ;
+                return str ;
+            }
+
+            $(function (){
+                $("#bonbu_code").change(function(){
+                    bonbu_code = $("#bonbu_code option:selected").val();
+                    bonbu_code = nvl(bonbu_code, "전체");
+                    siteName_code = "전체"
+                    key_month = '{{ key_month }}'
+                    let sendData = {
+                        'bonbu_code': bonbu_code,
+                        'siteName_code': siteName_code,
+                        'key_month': key_month,
+                    };
+                    request_url = "{% url 'JobReport:predictPeriodAjax' %}"
+                    console.log("sendData : ", sendData);
+                    $.ajax({
+                        url: request_url,
+                        type: 'POST',
+                        headers: {'X-CSRFTOKEN': '{{ csrf_token }}'},
+                        data: JSON.stringify(sendData),
+                        success: function(getData){
+                            console.log(getData.is_exist)
+                            if (getData.is_exist == false){
+                                $('#siteName_code').empty();
+                                var option = $("<option value='전체' selected>전체</option>");
+                                $('#siteName_code').append(option);
+                                $('#gongjong_code').empty();
+                                var option = $("<option value='전체' selected>전체</option>");
+                                $('#gongjong_code').append(option);
+                                console.log(getData.is_exist)
+                            } else{
+                                $('#siteName_code').empty();
+                                siteName_list = getData.siteName_list
+                                console.log(siteName_list)
+                                $.each(siteName_list, function(index, item){
+                                    var option = $("<option value='" + item + "'>" + item + "</option>");
+                                    $('#siteName_code').append(option);
+                                });
+                                $('#gongjong_code').empty();
+                                gongjong_list = getData.gongjong_list
+                                $.each(gongjong_list, function(index, item){
+                                    var option = $("<option value='" + item + "'>" + item + "</option>");
+                                    $('#gongjong_code').append(option);
+                                })
+                            }
+                        },
+                        error: function(e){
+                            console.log(e);
+                        }
+                    })
+                })
+            })
+
+            $(function (){
+                $("#siteName_code").change(function(){
+                    bonbu_code = $("#bonbu_code option:selected").val();
+                    bonbu_code = nvl(bonbu_code, "전체");
+                    siteName_code = $("#siteName_code").val();
+                    siteName_code = nvl(siteName_code, "전체");
+                    key_month = '{{ key_month }}'
+                    let sendData = {
+                        'bonbu_code': bonbu_code,
+                        'siteName_code': siteName_code,
+                        'key_month': key_month,
+                    };
+                    request_url = "{% url 'JobReport:predictPeriodAjax' %}"
+                    console.log("sendData : ", sendData);
+                    $.ajax({
+                        url: request_url,
+                        type: 'POST',
+                        headers: {'X-CSRFTOKEN': '{{ csrf_token }}'},
+                        data: JSON.stringify(sendData),
+                        success: function(getData){
+                            console.log(getData.is_exist)
+                            if (getData.is_exist == false){
+                                $('#gongjong_code').empty();
+                                var option = $("<option value='전체' selected>전체</option>");
+                                $('#gongjong_code').append(option);
+                                console.log(getData.is_exist)
+                            } else{
+                                $('#gongjong_code').empty();
+                                gongjong_list = getData.gongjong_list
+                                console.log(gongjong_list)
+                                $.each(gongjong_list, function(index, item){
+                                    var option = $("<option value='" + item + "'>" + item + "</option>");
+                                    $('#gongjong_code').append(option);
+                                });
+                            }
+                        },
+                        error: function(e){
+                            console.log(e);
+                        }
+                    })
+                })
+            })
+        </script>
+    </head>
+    <body>
+        <!-- Here is our main header that is used across all the pages of our website -->
+        <header class="header">
+            <div class="logo">
+                &nbsp;
+                <img class="logo-hyundai" src="{% static 'JobReport/images/hundai_english_horizontal_negative.png' %}" alt="Easy 작업일보 현황"/>
+                <br>
+                <div class="logo title">&nbsp;&nbsp;물량소화 현황</div>
+            </div>
+        </header>
+        <!-- Here is our page's main content -->
+        <main>
+            <!-- It contains an article -->
+            <article>
+                <div class="container site-code-selector">
+                    <form class="data-selector" action="" method="post">
+                        {% csrf_token %}
+                        <label class="detail-data-selector" for="bonbu_code">본부선택 : </label>
+                        <select id="bonbu_code" name="bonbu_code">
+                            {% for i in bonbu_list %}
+                                {% if i == bonbu_code %}
+                                    <option value="{{i}}" selected>{{i}}</option>
+                                {% else %}
+                                    <option value="{{i}}">{{i}}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        <span style="margin-right: 20px"></span>
+
+                        <label class="detail-data-selector" for="siteName_code">현장선택 : </label>
+                        <select id="siteName_code" name="siteName_code" style="width:300px">
+                            {% for i in siteName_list %}
+                                {% if i == siteName_code %}
+                                    <option value="{{i}}" selected>{{i}}</option>
+                                {% else %}
+                                    <option value="{{i}}">{{i}}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        <span style="margin-right: 20px"></span>
+
+                        <label class="detail-data-selector" for="gongjong_code">공종선택 : </label>
+                        <select id="gongjong_code" name="gongjong_code">
+                            {% for i in gongjong_list %}
+                                {% if i == gongjong_code %}
+                                    <option value="{{i}}" selected>{{i}}</option>
+                                {% else %}
+                                    <option value="{{i}}">{{i}}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        <span style="margin-right: 20px"></span>
+
+                        <input type="submit" value="OK" />
+                        <span style="margin-right: 20px"></span>
+
+                    </form>
+
+                    <span style="margin-right: 20px"></span>
+                    <form class="download-excel" action="/JobReport/predictPeriodExcel" method="post">
+                        {% csrf_token %}
+                        <label class="label-download-excel" for="download-excel">엑셀파일 다운로드 : </label>
+                        <input name="bonbu_code" type="hidden" value="{{ bonbu_code }}">
+                        <input name="siteName_code" type="hidden" value="{{ siteName_code }}">
+                        <input name="gongjong_code" type="hidden" value="{{ gongjong_code }}">
+                        <input name="key_month" type="hidden" value="{{ key_month }}">
+                        <input name="ExcelDown" type="submit" value="ExcelDown"/>
+                    </form>
+                </div>
+
+                <div class="contents">
+                    <table class="dataframe">
+                        <thead>
+                            <tr>
+                                <th class="head" rowspan="2" style="width: 100px;">현장<br>코드</th>
+                                <th class="head" rowspan="2" style="width: 200px;">현장명</th>
+                                <th class="head" rowspan="2" style="width: 200px;">업체명</th>
+                                <th class="head" rowspan="2" style="width: 200px;">대표공종</th>
+                                <th class="head" rowspan="2" style="width: 100px;">시작일</th>
+                                <th class="head" rowspan="2" style="width: 100px;">종료일</th>
+                                <th class="head" rowspan="2" style="width: 50px;">진행월</th>
+                                <th class="head" rowspan="2" style="width: 50px;">단위</th>
+                                <th class="head" colspan="6" style="border-bottom:1px solid #A0A0A0;">물량</th>
+                                <th class="head" rowspan="2" style="width: 200px;">월평균<br>소화<br>물량</th>
+                                <th class="head" colspan="6" style="border-bottom:1px solid #A0A0A0;">월별실적추이 (최근 6개월)</th>
+                                <th class="head" rowspan="2" style="width: 200px;">잔여<br>개월<br>수</th>
+                                <th class="head" colspan="3" style="border-bottom:1px solid #A0A0A0;">분석 (잔여공기 예측)</th>
+                            </tr>
+                            <tr>
+                                <th class="head" style="width: 100px;">전체<br>(계약)</th>
+                                <th class="head" style="width: 100px;">전월<br>누계</th>
+                                <th class="head" style="width: 100px;">금월</th>
+                                <th class="head" style="width: 100px;">금월<br>누계</th>
+                                <th class="head" style="width: 100px;">잔여량</th>
+                                <th class="head" style="width: 100px;">진행율</th>
+                                <th class="head" style="width: 100px;">{{M5}}</th>
+                                <th class="head" style="width: 100px;">{{M4}}</th>
+                                <th class="head" style="width: 100px;">{{M3}}</th>
+                                <th class="head" style="width: 100px;">{{M2}}</th>
+                                <th class="head" style="width: 100px;">{{M1}}</th>
+                                <th class="head" style="width: 100px;">{{M0}}</th>
+                                <th class="head" style="width: 100px;">누적<br>평균<br>기준</th>
+                                <th class="head" style="width: 100px;">최근월<br>기준</th>
+                                <th class="head" style="width: 100px;">3개월<br>평균<br>기준</th>
+                            </tr>
+                        </thead>
+                        <tbody id = "tblApplications">
+                            {% for i in data %}
+                                <tr>
+                                    {% for k,v in i.items %} 
+                                        {% if k == "진행율" %}
+                                            <td class="data" style="font-weight: bold;">{{v}}</td>
+                                        {% elif k == "잔여개월수" %}
+                                            <td class="data" style="font-weight: bold;">{{v}}</td>
+                                        {% else %}
+                                            <td class="data">{{v}}</td>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </main>
+
+        <!-- And here is our main footer that is used across all the pages of our website -->
+	<footer class="footer-container">
+        <img style="height:10px;" src="{% static 'JobReport/images/hundai_english_horizontal.png' %}"/>
+         &nbsp;&nbsp;HYUNDAI E&C. ALL RIGHTS RESERVED.
+	</footer>
+    </body>
+</html>
